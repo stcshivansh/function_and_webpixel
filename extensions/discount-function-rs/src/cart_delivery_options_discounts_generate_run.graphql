@@ -1,0 +1,14 @@
+query DeliveryInput {
+  cart {
+    deliveryGroups {
+      id
+    }
+  }
+  discount {
+    discountClasses
+    metafield(namespace: "discount", key: "shippingDiscount") {
+      jsonValue
+    }
+  
+  }
+}
