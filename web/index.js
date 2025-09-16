@@ -7,7 +7,7 @@ import productRoutes from "./routes/productRoutes.js";
 import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import PrivacyWebhookHandlers from "./privacy.js";
-
+import cors from 'cors'
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
   10
@@ -19,7 +19,9 @@ const STATIC_PATH =
     : `${process.cwd()}/frontend/`;
 
 const app = express();
-
+app.use(cors({
+  origin:"*"
+}))
 // Set up Shopify authentication and webhook handling
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
@@ -52,24 +54,70 @@ app.use(express.json());
 //       }
 //     }
 //   `);
-
 //   res.status(200).send({ count: countData.data.productsCount.count });
 // });
 app.use("/api/products",productRoutes)
-app.post("/api/products", async (_req, res) => {
-  let status = 200;
-  let error = null;
 
+app.get("/api/getCart", async (req, res) => {
   try {
-    await productCreator(res.locals.shopify.session);
-  } catch (e) {
-    console.log(`Failed to process products/create: ${e.message}`);
-    status = 500;
-    error = e.message;
+    console.log("req. received")
+    // Get cartId from headers
+    let cartId = req.headers["cartid"];
+    cartId = "gid://shopify/Cart/"+cartId
+    console.log(typeof cartId)
+    console.log(cartId)
+    if (!cartId) {
+      return res.status(400).json({ error: "Missing cartId in request headers" });
+    }
+
+    // GraphQL query
+    const query = `
+      mutation addAttribute($cartId: ID!) {
+        cartAttributesUpdate(
+          cartId: $cartId,
+          attributes: [{ key: "success", value: "successfully updated" }]
+        ) {
+          cart {
+            id
+            attributes {
+              key
+              value
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+
+    `;
+    const variables ={
+      "cartId": cartId,
+    }
+    const response = await fetch("https://test-store0077.myshopify.com/api/2025-07/graphql.json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token":"e8e4bb8ca0a0519c41726c267c66b110" 
+      },
+      body: JSON.stringify({
+        query,
+        variables
+      })
+    });
+
+    const result = await response.json();
+    console.log("Cart result:", result);
+
+    return res.json(result);
+  } catch (err) {
+    console.error("Error fetching cart:", err);
+    res.status(500).json({ error: "Failed to fetch cart" });
   }
-  res.status(status).send({ success: status === 200, error });
 });
 
+// getCart();
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
@@ -83,4 +131,5 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
         .replace("%VITE_SHOPIFY_API_KEY%", process.env.SHOPIFY_API_KEY || "")
     );
 });
-app.listen(53904,()=>console.log("server is running at ",PORT));
+console.log(process.env.HOST)
+app.listen(PORT,()=>console.log("server is running at ",PORT));

@@ -3,7 +3,7 @@
 client_id = "2f9b6fd65c57cc564a11b3ba35e9a0cb"
 name = "shivansh-extension-app"
 handle = "shivansh-extension-app"
-application_url = "https://assessment-desired-accommodate-meant.trycloudflare.com"
+application_url = "https://browser-priced-contains-tells.trycloudflare.com"
 embedded = true
 
 [build]
@@ -15,10 +15,21 @@ api_version = "2025-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_customers,read_orders,read_checkout_branding_settings,write_checkout_branding_settings,write_products,read_products,write_discounts"
+scopes = "write_pixels,read_customer_events,read_customers,read_orders,read_checkout_branding_settings,write_checkout_branding_settings,write_products,read_products,write_discounts"
 
 [auth]
-redirect_urls = ["https://assessment-desired-accommodate-meant.trycloudflare.com/auth/callback", "https://assessment-desired-accommodate-meant.trycloudflare.com/auth/shopify/callback", "https://assessment-desired-accommodate-meant.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://browser-priced-contains-tells.trycloudflare.com/auth/callback", "https://browser-priced-contains-tells.trycloudflare.com/auth/shopify/callback", "https://browser-priced-contains-tells.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
+
+[settings]
+[[settings.fields]]
+id = "backendURL"
+name = "Backend URL"
+description = "The URL of your backend API"
+type = "single_line_text_field"
+
+[[settings.fields.validations]]
+name = "regex"
+value = "^https?://.+"
